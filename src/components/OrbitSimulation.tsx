@@ -31,7 +31,7 @@ export function OrbitSimulation() {
   const step = (d: number) => setAge((a) => (((a + d) % SYNODIC_DAYS) + SYNODIC_DAYS) % SYNODIC_DAYS);
   const angle = angleFromAge(age);
   const idx = phaseIndex(age);
-  const phase = PHASES[idx];
+  const phase = PHASES[idx] ?? PHASES[0];
 
   // Orbit view geometry (schematic, not to scale)
   const ex = 330, ey = 160, R = 80;

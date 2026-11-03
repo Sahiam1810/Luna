@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { MoonDisc } from "@/components/MoonDisc";
 import { OrbitSimulation } from "@/components/OrbitSimulation";
-import { PHASES, SYNODIC_DAYS, angleFromAge, illumination, moonAgeDays, phaseIndex } from "@/lib/moon";
+import { PHASES, SYNODIC_DAYS, angleFromAge, illumination, moonAgeDays, phaseAt } from "@/lib/moon";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -93,10 +93,10 @@ function DateQuery() {
         <div className="flex items-center justify-center gap-6 rounded-xl bg-secondary/50 p-6">
           {result ? (
             <>
-              <MoonDisc angle={angleFromAge(result.age)} size={130} label={PHASES[phaseIndex(result.age)].name} />
+              <MoonDisc angle={angleFromAge(result.age)} size={130} label={phaseAt(result.age).name} />
               <div>
                 <p className="text-sm text-muted-foreground">{new Date(result.date + "T12:00:00Z").toLocaleDateString("es", { dateStyle: "long", timeZone: "UTC" })}</p>
-                <p className="font-display text-3xl">{PHASES[phaseIndex(result.age)].name}</p>
+                <p className="font-display text-3xl">{phaseAt(result.age).name}</p>
                 <p className="mt-2 text-sm">Edad lunar: <b>{result.age.toFixed(1)} días</b></p>
                 <p className="text-sm">Iluminado: <b>{Math.round(illumination(angleFromAge(result.age)) * 100)}%</b></p>
               </div>

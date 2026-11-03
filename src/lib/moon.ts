@@ -30,3 +30,5 @@ export const PHASES = [
 export function phaseIndex(age: number): number {
   return Math.floor(((age / SYNODIC_DAYS) * 8 + 0.5)) % 8;
 }
+
+export const phaseAt = (age: number) => PHASES[phaseIndex(age)] ?? PHASES[0];
