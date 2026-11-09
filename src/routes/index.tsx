@@ -71,7 +71,6 @@ function Hero() {
     </section>
   );
 }
-
 function DateQuery() {
   const today = new Date().toISOString().slice(0, 10);
   const [value, setValue] = useState(today);
@@ -132,24 +131,6 @@ function Gallery() {
   );
 }
 
-const DATA = [
-  ["Distancia Tierra-Luna", "384 400", "km", "Distancia media entre centros."],
-  ["Período sidéreo", "27,32", "días", "Una vuelta respecto a las estrellas."],
-  ["Período sinódico", "29,53", "días", "De luna nueva a luna nueva; más largo porque la Tierra también avanza alrededor del Sol."],
-  ["Velocidad orbital", "≈ 1,02", "km/s", "v = 2πr / T sidéreo."],
-  ["Fuerza gravitacional", "≈ 1,98 × 10²⁰", "N", "F = G·M·m / r² con valores medios."],
-  ["Ciclo lunar", "0 – 29,5", "días", "Edad de la Luna desde la última luna nueva."],
-];
-
-const FORMULAS = [
-  ["Gravitación universal", "F = G · M · m / r²", "G: constante gravitacional (6,674×10⁻¹¹ N·m²/kg²); M, m: masas de la Tierra y la Luna; r: distancia entre centros."],
-  ["Segunda ley de Newton", "F = m · a", "La fuerza gravitatoria produce la aceleración centrípeta que curva la trayectoria de la Luna."],
-  ["Movimiento orbital", "v = √(G · M / r)", "Velocidad de una órbita circular: equilibrio entre gravedad y movimiento."],
-  ["Velocidad angular", "ω = 2π / T", "T: período orbital. Indica cuántos radianes recorre la Luna por unidad de tiempo."],
-  ["Vectores", "r⃗, v⃗ ⊥ r⃗, F⃗ ∥ −r⃗", "La posición apunta desde la Tierra; la velocidad es tangente; la fuerza apunta hacia la Tierra."],
-  ["Energía", "K = ½ m v²   U = −G M m / r", "Energía cinética y potencial gravitacional; su suma se conserva en una órbita ideal."],
-];
-
 function Index() {
   return (
     <div className="min-h-screen">
@@ -172,3 +153,4 @@ function Index() {
     </div>
   );
 }
+// End of the home route definition.

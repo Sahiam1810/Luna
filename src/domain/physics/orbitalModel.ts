@@ -41,7 +41,7 @@ export function calculateOrbitalAngle(
 /**
  * Calculates the position vector in a circular orbit.
  *
- * r⃗ = (r cos θ, r sin θ)
+ * Position vector r = (r cos θ, r sin θ)
  *
  * Radius is expressed in meters (m) and angle in radians. The returned vector
  * is expressed in meters (m), with counterclockwise positive angular direction.
@@ -63,7 +63,7 @@ export function calculatePositionVector(radius: number, angle: number): Vector2 
 /**
  * Calculates the tangential velocity vector for uniform circular motion.
  *
- * v⃗ = v(-sin θ, cos θ), where v = 2πr/T
+ * Velocity vector v = v(-sin θ, cos θ), where v = 2πr/T
  *
  * Radius is expressed in meters (m), period in seconds (s), and the returned
  * vector is expressed in meters per second (m/s).
@@ -89,7 +89,7 @@ export function calculateVelocityVector(radius: number, period: number, angle: n
 /**
  * Calculates the centripetal acceleration vector toward the Earth's center.
  *
- * a⃗ = -ac(cos θ, sin θ), where ac = v²/r
+ * Acceleration vector a = -ac(cos θ, sin θ), where ac = v²/r
  *
  * Radius is expressed in meters (m), period in seconds (s), and the returned
  * vector is expressed in meters per second squared (m/s²).

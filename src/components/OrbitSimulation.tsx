@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
 import { MoonDisc } from "./MoonDisc";
+import { VectorSymbol } from "./VectorSymbol";
 import { PHASES, SYNODIC_DAYS, phaseIndex } from "@/lib/moon";
 import { calculateLunarSystemState } from "@/domain/physics/lunarSystemState";
 import { calculatePhysicsReadout } from "@/domain/physics/physicsReadout";
@@ -103,25 +104,25 @@ export function OrbitSimulation() {
           {showPositionVector && (
             <>
               <line x1={ex} y1={ey} x2={mx} y2={my} stroke="var(--primary)" strokeWidth="2" markerEnd="url(#arrR)" />
-              <text x={ex + (mx - ex) * 0.5} y={ey + (my - ey) * 0.5 - 6} className="fill-primary text-[11px]">r⃗</text>
+              <text x={ex + (mx - ex) * 0.5} y={ey + (my - ey) * 0.5 - 6} className="fill-primary text-[11px] italic">r</text>
             </>
           )}
           {showVelocityVector && (
             <>
               <line x1={mx} y1={my} x2={mx + vx} y2={my + vy} stroke="var(--earth)" strokeWidth="2" markerEnd="url(#arrV)" />
-              <text x={mx + vx} y={my + vy - 6} className="fill-earth text-[11px]">v⃗</text>
+              <text x={mx + vx} y={my + vy - 6} className="fill-earth text-[11px] italic">v</text>
             </>
           )}
           {showAccelerationVector && (
             <>
               <line x1={mx} y1={my} x2={mx + ax} y2={my + ay} stroke="var(--sun-edge)" strokeWidth="2" markerEnd="url(#arrA)" />
-              <text x={mx + ax} y={my + ay - 6} className="fill-sun-edge text-[11px]">a⃗</text>
+              <text x={mx + ax} y={my + ay - 6} className="fill-sun-edge text-[11px] italic">a</text>
             </>
           )}
           {showForceVector && (
             <>
               <line x1={mx} y1={my} x2={mx + fx * R * 0.45} y2={my + fy * R * 0.45} stroke="var(--destructive)" strokeWidth="2" markerEnd="url(#arrF)" />
-              <text x={mx + fx * R * 0.45} y={my + fy * R * 0.45 - 6} className="fill-destructive text-[11px]">F⃗</text>
+              <text x={mx + fx * R * 0.45} y={my + fy * R * 0.45 - 6} className="fill-destructive text-[11px] italic">F</text>
             </>
           )}
           <text x="50" y="225" textAnchor="middle" className="fill-muted-foreground text-[12px]">Sol</text>
@@ -129,10 +130,10 @@ export function OrbitSimulation() {
         </svg>
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span>☀ Dirección de la luz solar →</span>
-          {showPositionVector && <span className="text-primary">— posición r⃗</span>}
-          {showVelocityVector && <span className="text-earth">— velocidad v⃗</span>}
-          {showAccelerationVector && <span className="text-sun-edge">— aceleración a⃗</span>}
-          {showForceVector && <span className="text-destructive">— fuerza F⃗</span>}
+          {showPositionVector && <span className="text-primary">— posición <VectorSymbol symbol="r" /></span>}
+          {showVelocityVector && <span className="text-earth">— velocidad <VectorSymbol symbol="v" /></span>}
+          {showAccelerationVector && <span className="text-sun-edge">— aceleración <VectorSymbol symbol="a" /></span>}
+          {showForceVector && <span className="text-destructive">— fuerza <VectorSymbol symbol="F" /></span>}
           <span className="italic">Vectores no dibujados a escala; la longitud es solo visual. Se muestran dirección y magnitud real.</span>
         </div>
       </div>
@@ -170,10 +171,10 @@ export function OrbitSimulation() {
         </div>
         <div className="flex flex-wrap items-center gap-4 text-sm">
           <label className="flex items-center gap-2"><input type="checkbox" checked={showOrbits} onChange={(e) => setShowOrbits(e.target.checked)} className="accent-primary" />Trayectorias</label>
-          <label className="flex items-center gap-2 text-primary"><input type="checkbox" checked={showPositionVector} onChange={(e) => setShowPositionVector(e.target.checked)} className="accent-primary" />r⃗ ({formatScientific(physics.distance)} m)</label>
-          <label className="flex items-center gap-2 text-earth"><input type="checkbox" checked={showVelocityVector} onChange={(e) => setShowVelocityVector(e.target.checked)} className="accent-primary" />v⃗ ({formatScientific(physics.speed)} m/s)</label>
-          <label className="flex items-center gap-2 text-sun-edge"><input type="checkbox" checked={showAccelerationVector} onChange={(e) => setShowAccelerationVector(e.target.checked)} className="accent-primary" />a⃗ ({formatScientific(physics.centripetalAcceleration)} m/s²)</label>
-          <label className="flex items-center gap-2 text-destructive"><input type="checkbox" checked={showForceVector} onChange={(e) => setShowForceVector(e.target.checked)} className="accent-primary" />F⃗ ({formatScientific(physics.gravitationalForce)} N)</label>
+          <label className="flex items-center gap-2 text-primary"><input type="checkbox" checked={showPositionVector} onChange={(e) => setShowPositionVector(e.target.checked)} className="accent-primary" /><VectorSymbol symbol="r" /> ({formatScientific(physics.distance)} m)</label>
+          <label className="flex items-center gap-2 text-earth"><input type="checkbox" checked={showVelocityVector} onChange={(e) => setShowVelocityVector(e.target.checked)} className="accent-primary" /><VectorSymbol symbol="v" /> ({formatScientific(physics.speed)} m/s)</label>
+          <label className="flex items-center gap-2 text-sun-edge"><input type="checkbox" checked={showAccelerationVector} onChange={(e) => setShowAccelerationVector(e.target.checked)} className="accent-primary" /><VectorSymbol symbol="a" /> ({formatScientific(physics.centripetalAcceleration)} m/s²)</label>
+          <label className="flex items-center gap-2 text-destructive"><input type="checkbox" checked={showForceVector} onChange={(e) => setShowForceVector(e.target.checked)} className="accent-primary" /><VectorSymbol symbol="F" /> ({formatScientific(physics.gravitationalForce)} N)</label>
           <span className="text-muted-foreground">Ir a fase:</span>
           {PHASES.map((p, i) => (
             <button key={p.name} className={`ctl ${i === idx ? "ctl-active" : ""}`} onClick={() => { setPlaying(false); setAge((i / 8) * SYNODIC_DAYS); }}>{p.name}</button>
