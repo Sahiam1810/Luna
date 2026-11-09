@@ -3,6 +3,9 @@ import { Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
 import { MoonDisc } from "./MoonDisc";
 import { PHASES, SYNODIC_DAYS, phaseIndex } from "@/lib/moon";
 import { calculateLunarSystemState } from "@/domain/physics/lunarSystemState";
+import { calculatePhysicsReadout } from "@/domain/physics/physicsReadout";
+import { G, LUNAR_SIDEREAL_PERIOD, M_EARTH, M_MOON } from "@/domain/physics/constants";
+import { formatScientific } from "@/lib/format";
 
 const SPEEDS = [0.5, 1, 2, 4];
 
@@ -11,7 +14,10 @@ export function OrbitSimulation() {
   const [playing, setPlaying] = useState(true);
   const [speed, setSpeed] = useState(1);
   const [showOrbits, setShowOrbits] = useState(true);
-  const [showVectors, setShowVectors] = useState(false);
+  const [showPositionVector, setShowPositionVector] = useState(false);
+  const [showVelocityVector, setShowVelocityVector] = useState(false);
+  const [showAccelerationVector, setShowAccelerationVector] = useState(false);
+  const [showForceVector, setShowForceVector] = useState(false);
   const last = useRef<number | null>(null);
 
   useEffect(() => {
@@ -31,6 +37,7 @@ export function OrbitSimulation() {
 
   const step = (d: number) => setAge((a) => (((a + d) % SYNODIC_DAYS) + SYNODIC_DAYS) % SYNODIC_DAYS);
   const lunarState = calculateLunarSystemState(age);
+  const physics = calculatePhysicsReadout(lunarState);
   const phaseAngle = lunarState.angle - Math.PI;
   const idx = phaseIndex(age);
   const phase = PHASES[idx] ?? PHASES[0];
@@ -43,8 +50,10 @@ export function OrbitSimulation() {
   // Keep the existing visual vector scale while deriving directions from state.
   const vx = R * (lunarState.orbit.velocity.x / lunarState.orbit.speed) * 0.5;
   const vy = -R * (lunarState.orbit.velocity.y / lunarState.orbit.speed) * 0.5;
-  const fx = lunarState.orbit.acceleration.x / lunarState.orbit.centripetalAcceleration;
-  const fy = -lunarState.orbit.acceleration.y / lunarState.orbit.centripetalAcceleration;
+  const ax = R * (lunarState.orbit.acceleration.x / lunarState.orbit.centripetalAcceleration) * 0.55;
+  const ay = -R * (lunarState.orbit.acceleration.y / lunarState.orbit.centripetalAcceleration) * 0.55;
+  const fx = physics.gravitationalForceVector.x / physics.gravitationalForce;
+  const fy = -physics.gravitationalForceVector.y / physics.gravitationalForce;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
@@ -59,11 +68,17 @@ export function OrbitSimulation() {
               <stop offset="0%" stopColor="var(--sun-core)" />
               <stop offset="100%" stopColor="var(--sun-edge)" />
             </radialGradient>
+            <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 L10 5 L0 10z" fill="var(--primary)" />
+            </marker>
             <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
               <path d="M0 0 L10 5 L0 10z" fill="var(--sun-edge)" />
             </marker>
             <marker id="arrV" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
               <path d="M0 0 L10 5 L0 10z" fill="var(--earth)" />
+            </marker>
+            <marker id="arrA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 L10 5 L0 10z" fill="var(--sun-edge)" />
             </marker>
             <marker id="arrF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
               <path d="M0 0 L10 5 L0 10z" fill="var(--destructive)" />
@@ -85,10 +100,28 @@ export function OrbitSimulation() {
           {/* Moon: lit half always faces the sun (left) */}
           <circle cx={mx} cy={my} r="9" fill="var(--moon-dark)" />
           <path d={`M ${mx} ${my - 9} A 9 9 0 0 0 ${mx} ${my + 9}Z`} fill="var(--moon-light)" />
-          {showVectors && (
+          {showPositionVector && (
+            <>
+              <line x1={ex} y1={ey} x2={mx} y2={my} stroke="var(--primary)" strokeWidth="2" markerEnd="url(#arrR)" />
+              <text x={ex + (mx - ex) * 0.5} y={ey + (my - ey) * 0.5 - 6} className="fill-primary text-[11px]">r⃗</text>
+            </>
+          )}
+          {showVelocityVector && (
             <>
               <line x1={mx} y1={my} x2={mx + vx} y2={my + vy} stroke="var(--earth)" strokeWidth="2" markerEnd="url(#arrV)" />
+              <text x={mx + vx} y={my + vy - 6} className="fill-earth text-[11px]">v⃗</text>
+            </>
+          )}
+          {showAccelerationVector && (
+            <>
+              <line x1={mx} y1={my} x2={mx + ax} y2={my + ay} stroke="var(--sun-edge)" strokeWidth="2" markerEnd="url(#arrA)" />
+              <text x={mx + ax} y={my + ay - 6} className="fill-sun-edge text-[11px]">a⃗</text>
+            </>
+          )}
+          {showForceVector && (
+            <>
               <line x1={mx} y1={my} x2={mx + fx * R * 0.45} y2={my + fy * R * 0.45} stroke="var(--destructive)" strokeWidth="2" markerEnd="url(#arrF)" />
+              <text x={mx + fx * R * 0.45} y={my + fy * R * 0.45 - 6} className="fill-destructive text-[11px]">F⃗</text>
             </>
           )}
           <text x="50" y="225" textAnchor="middle" className="fill-muted-foreground text-[12px]">Sol</text>
@@ -96,8 +129,11 @@ export function OrbitSimulation() {
         </svg>
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span>☀ Dirección de la luz solar →</span>
-          {showVectors && <><span className="text-earth">— velocidad v</span><span className="text-destructive">— fuerza F</span></>}
-          <span className="italic">Esquema no a escala.</span>
+          {showPositionVector && <span className="text-primary">— posición r⃗</span>}
+          {showVelocityVector && <span className="text-earth">— velocidad v⃗</span>}
+          {showAccelerationVector && <span className="text-sun-edge">— aceleración a⃗</span>}
+          {showForceVector && <span className="text-destructive">— fuerza F⃗</span>}
+          <span className="italic">Vectores no dibujados a escala; la longitud es solo visual. Se muestran dirección y magnitud real.</span>
         </div>
       </div>
 
@@ -134,12 +170,61 @@ export function OrbitSimulation() {
         </div>
         <div className="flex flex-wrap items-center gap-4 text-sm">
           <label className="flex items-center gap-2"><input type="checkbox" checked={showOrbits} onChange={(e) => setShowOrbits(e.target.checked)} className="accent-primary" />Trayectorias</label>
-          <label className="flex items-center gap-2"><input type="checkbox" checked={showVectors} onChange={(e) => setShowVectors(e.target.checked)} className="accent-primary" />Vectores</label>
+          <label className="flex items-center gap-2 text-primary"><input type="checkbox" checked={showPositionVector} onChange={(e) => setShowPositionVector(e.target.checked)} className="accent-primary" />r⃗ ({formatScientific(physics.distance)} m)</label>
+          <label className="flex items-center gap-2 text-earth"><input type="checkbox" checked={showVelocityVector} onChange={(e) => setShowVelocityVector(e.target.checked)} className="accent-primary" />v⃗ ({formatScientific(physics.speed)} m/s)</label>
+          <label className="flex items-center gap-2 text-sun-edge"><input type="checkbox" checked={showAccelerationVector} onChange={(e) => setShowAccelerationVector(e.target.checked)} className="accent-primary" />a⃗ ({formatScientific(physics.centripetalAcceleration)} m/s²)</label>
+          <label className="flex items-center gap-2 text-destructive"><input type="checkbox" checked={showForceVector} onChange={(e) => setShowForceVector(e.target.checked)} className="accent-primary" />F⃗ ({formatScientific(physics.gravitationalForce)} N)</label>
           <span className="text-muted-foreground">Ir a fase:</span>
           {PHASES.map((p, i) => (
             <button key={p.name} className={`ctl ${i === idx ? "ctl-active" : ""}`} onClick={() => { setPlaying(false); setAge((i / 8) * SYNODIC_DAYS); }}>{p.name}</button>
           ))}
         </div>
+        <section id="fisica" className="grid gap-4 border-t border-border pt-5 lg:grid-cols-2">
+          <div>
+            <h3 className="font-display text-2xl">Datos físicos en tiempo real</h3>
+            <p className="mt-1 text-xs text-muted-foreground">Modelo circular con distancia media y periodo sideral; es una aproximación educativa, no una efeméride.</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {[
+                ["Distancia", `${formatScientific(physics.distance)} m`],
+                ["Velocidad orbital", `${formatScientific(physics.speed)} m/s`],
+                ["Velocidad angular", `${formatScientific(physics.angularVelocity)} rad/s`],
+                ["Aceleración centrípeta", `${formatScientific(physics.centripetalAcceleration)} m/s²`],
+                ["Fuerza gravitacional", `${formatScientific(physics.gravitationalForce)} N`],
+                ["Energía cinética Ec", `${formatScientific(physics.kineticEnergy)} J`],
+                ["Energía potencial Ep", `${formatScientific(physics.potentialEnergy)} J`],
+                ["Energía total E", `${formatScientific(physics.totalEnergy)} J`],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-lg bg-secondary p-3">
+                  <p className="text-xs text-muted-foreground">{label}</p>
+                  <p className="mt-1 font-display text-lg">{value}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">Periodos de referencia: {physics.orbitalPeriodDays.toFixed(2).replace(".", ",")} d siderales · {physics.synodicPeriodDays.toFixed(2).replace(".", ",")} d sinódicos.</p>
+          </div>
+          <div>
+            <h3 className="font-display text-2xl">Fórmulas y verificaciones</h3>
+            <div className="mt-4 grid gap-3">
+              {[
+                ["Gravitación", "F = G·M·m/r²", `${formatScientific(G)} · ${formatScientific(M_EARTH)} · ${formatScientific(M_MOON)} / (${formatScientific(physics.distance)})²`],
+                ["Velocidad orbital", "v = 2πr/T", `2π · ${formatScientific(physics.distance)} / ${formatScientific(LUNAR_SIDEREAL_PERIOD)}`],
+                ["Velocidad angular", "ω = 2π/T", `2π / ${formatScientific(LUNAR_SIDEREAL_PERIOD)}`],
+                ["Aceleración", "a_c = v²/r", `(${formatScientific(physics.speed)})² / ${formatScientific(physics.distance)}`],
+                ["Energía cinética", "Ec = ½mv²", `½ · ${formatScientific(M_MOON)} · (${formatScientific(physics.speed)})²`],
+                ["Energía potencial", "Ep = −GMm/r", `−${formatScientific(G)} · ${formatScientific(M_EARTH)} · ${formatScientific(M_MOON)} / ${formatScientific(physics.distance)}`],
+              ].map(([title, formula, substitution]) => (
+                <div key={title} className="rounded-lg bg-secondary p-3">
+                  <p className="text-sm text-primary">{title}: {formula}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{substitution}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 rounded-lg border border-border p-3 text-sm">
+              <p>F/m Luna frente a a_c: <b>{physics.gravitationalAccelerationDifferencePercent.toFixed(2).replace(".", ",")}%</b> de diferencia.</p>
+              <p className="mt-1">Ec frente a −Ep/2: <b>{physics.kineticPotentialDifferencePercent.toFixed(2).replace(".", ",")}%</b> de diferencia.</p>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );

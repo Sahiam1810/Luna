@@ -162,31 +162,6 @@ function Index() {
           <p className="mt-3 mb-10 max-w-2xl text-muted-foreground">Un solo Sol, una Tierra y una Luna. Ambas vistas están sincronizadas: la fase depende de la geometría, no de la sombra de la Tierra (eso son los eclipses). La traslación terrestre se simplifica en este modelo.</p>
           <OrbitSimulation />
         </section>
-        <section className="container-x py-20">
-          <h2 className="font-display text-4xl">Datos físicos</h2>
-          <p className="mt-3 text-sm text-muted-foreground">Valores medios de referencia; el modelo visual no está a escala.</p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {DATA.map(([n, v, u, e]) => (
-              <div key={n} className="panel p-5">
-                <p className="text-sm text-muted-foreground">{n}</p>
-                <p className="mt-2 font-display text-3xl">{v} <span className="text-base text-primary">{u}</span></p>
-                <p className="mt-2 text-sm text-muted-foreground">{e}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-        <section id="fisica" className="container-x py-20">
-          <h2 className="font-display text-4xl">La física detrás de las fases</h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            {FORMULAS.map(([t, f, e]) => (
-              <article key={t} className="panel p-6">
-                <h3 className="font-display text-xl">{t}</h3>
-                <p className="formula my-4">{f}</p>
-                <p className="text-sm text-muted-foreground">{e}</p>
-              </article>
-            ))}
-          </div>
-        </section>
       </main>
       <footer className="border-t border-border">
         <div className="container-x flex flex-col gap-2 py-10 text-sm text-muted-foreground sm:flex-row sm:justify-between">
