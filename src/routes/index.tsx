@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { MoonDisc } from "@/components/MoonDisc";
 import { OrbitSimulation } from "@/components/OrbitSimulation";
-import { PHASES, SYNODIC_DAYS, angleFromAge, illumination, moonAgeDays, phaseAt } from "@/lib/moon";
+import { PHASES, SYNODIC_DAYS, moonAgeDays, phaseAt } from "@/lib/moon";
+import { calculateLunarSystemState } from "@/domain/physics/lunarSystemState";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -76,6 +77,7 @@ function DateQuery() {
   const [value, setValue] = useState(today);
   const [result, setResult] = useState<{ date: string; age: number } | null>(null);
   const query = () => setResult({ date: value, age: moonAgeDays(new Date(value + "T12:00:00Z")) });
+  const lunarState = result ? calculateLunarSystemState(result.age) : null;
   return (
     <section className="container-x py-20">
       <div className="panel grid gap-8 p-6 sm:p-10 md:grid-cols-2">
@@ -93,12 +95,12 @@ function DateQuery() {
         <div className="flex items-center justify-center gap-6 rounded-xl bg-secondary/50 p-6">
           {result ? (
             <>
-              <MoonDisc angle={angleFromAge(result.age)} size={130} label={phaseAt(result.age).name} />
+              <MoonDisc angle={lunarState!.angle - Math.PI} size={130} label={phaseAt(result.age).name} />
               <div>
                 <p className="text-sm text-muted-foreground">{new Date(result.date + "T12:00:00Z").toLocaleDateString("es", { dateStyle: "long", timeZone: "UTC" })}</p>
                 <p className="font-display text-3xl">{phaseAt(result.age).name}</p>
                 <p className="mt-2 text-sm">Edad lunar: <b>{result.age.toFixed(1)} días</b></p>
-                <p className="text-sm">Iluminado: <b>{Math.round(illumination(angleFromAge(result.age)) * 100)}%</b></p>
+                <p className="text-sm">Iluminado: <b>{Math.round(lunarState!.illuminatedFraction * 100)}%</b></p>
               </div>
             </>
           ) : <p className="text-muted-foreground">El resultado aparecerá aquí.</p>}

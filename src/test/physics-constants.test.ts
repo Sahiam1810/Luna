@@ -4,9 +4,11 @@ import {
   EARTH_MOON_DISTANCE,
   G,
   LUNAR_SIDEREAL_PERIOD,
+  LUNAR_SYNODIC_PERIOD,
   M_EARTH,
   M_MOON,
 } from "@/domain/physics/constants";
+import { SYNODIC_DAYS } from "@/lib/moon";
 
 describe("Earth-Moon physical constants", () => {
   it("exports positive values in SI reference magnitudes", () => {
@@ -15,6 +17,7 @@ describe("Earth-Moon physical constants", () => {
     expect(M_MOON).toBeGreaterThan(0);
     expect(EARTH_MOON_DISTANCE).toBeGreaterThan(0);
     expect(LUNAR_SIDEREAL_PERIOD).toBeGreaterThan(0);
+    expect(LUNAR_SYNODIC_PERIOD).toBeGreaterThan(0);
   });
 
   it("uses the selected reference values", () => {
@@ -23,5 +26,6 @@ describe("Earth-Moon physical constants", () => {
     expect(M_MOON).toBe(7.342e22);
     expect(EARTH_MOON_DISTANCE).toBe(3.844e8);
     expect(LUNAR_SIDEREAL_PERIOD).toBeCloseTo(27.321661 * 86400);
+    expect(LUNAR_SYNODIC_PERIOD).toBeCloseTo(SYNODIC_DAYS * 86400);
   });
 });

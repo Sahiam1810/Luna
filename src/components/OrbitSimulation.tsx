@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
 import { MoonDisc } from "./MoonDisc";
-import { PHASES, SYNODIC_DAYS, angleFromAge, illumination, phaseIndex } from "@/lib/moon";
+import { PHASES, SYNODIC_DAYS, phaseIndex } from "@/lib/moon";
+import { calculateLunarSystemState } from "@/domain/physics/lunarSystemState";
 
 const SPEEDS = [0.5, 1, 2, 4];
 
@@ -29,16 +30,21 @@ export function OrbitSimulation() {
   }, [playing, speed]);
 
   const step = (d: number) => setAge((a) => (((a + d) % SYNODIC_DAYS) + SYNODIC_DAYS) % SYNODIC_DAYS);
-  const angle = angleFromAge(age);
+  const lunarState = calculateLunarSystemState(age);
+  const phaseAngle = lunarState.angle - Math.PI;
   const idx = phaseIndex(age);
   const phase = PHASES[idx] ?? PHASES[0];
 
   // Orbit view geometry (schematic, not to scale)
   const ex = 330, ey = 160, R = 80;
-  const mx = ex - R * Math.cos(angle);
-  const my = ey + R * Math.sin(angle);
-  // velocity tangent (counterclockwise on screen)
-  const vx = R * Math.sin(angle) * 0.5, vy = R * Math.cos(angle) * 0.5;
+  // Convert the mathematical orbital frame to SVG: screen y points downward.
+  const mx = ex + R * (lunarState.orbit.position.x / lunarState.orbit.radius);
+  const my = ey - R * (lunarState.orbit.position.y / lunarState.orbit.radius);
+  // Keep the existing visual vector scale while deriving directions from state.
+  const vx = R * (lunarState.orbit.velocity.x / lunarState.orbit.speed) * 0.5;
+  const vy = -R * (lunarState.orbit.velocity.y / lunarState.orbit.speed) * 0.5;
+  const fx = lunarState.orbit.acceleration.x / lunarState.orbit.centripetalAcceleration;
+  const fy = -lunarState.orbit.acceleration.y / lunarState.orbit.centripetalAcceleration;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
@@ -82,7 +88,7 @@ export function OrbitSimulation() {
           {showVectors && (
             <>
               <line x1={mx} y1={my} x2={mx + vx} y2={my + vy} stroke="var(--earth)" strokeWidth="2" markerEnd="url(#arrV)" />
-              <line x1={mx} y1={my} x2={mx + (ex - mx) * 0.45} y2={my + (ey - my) * 0.45} stroke="var(--destructive)" strokeWidth="2" markerEnd="url(#arrF)" />
+              <line x1={mx} y1={my} x2={mx + fx * R * 0.45} y2={my + fy * R * 0.45} stroke="var(--destructive)" strokeWidth="2" markerEnd="url(#arrF)" />
             </>
           )}
           <text x="50" y="225" textAnchor="middle" className="fill-muted-foreground text-[12px]">Sol</text>
@@ -97,12 +103,12 @@ export function OrbitSimulation() {
 
       <div className="panel flex flex-col items-center p-6 text-center">
         <p className="text-xs uppercase tracking-[0.2em] text-primary">Así se ve la Luna desde la Tierra</p>
-        <div className="my-6"><MoonDisc angle={angle} size={200} label={phase.name} /></div>
+        <div className="my-6"><MoonDisc angle={phaseAngle} size={200} label={phase.name} /></div>
         <h3 className="font-display text-3xl">{phase.name}</h3>
         <p className="mt-2 max-w-xs text-sm text-muted-foreground">{phase.desc}</p>
         <dl className="mt-5 grid w-full grid-cols-2 gap-3 text-sm">
           <div className="rounded-lg bg-secondary p-3"><dt className="text-muted-foreground">Edad lunar</dt><dd className="font-display text-xl">{age.toFixed(1)} d</dd></div>
-          <div className="rounded-lg bg-secondary p-3"><dt className="text-muted-foreground">Iluminado</dt><dd className="font-display text-xl">{Math.round(illumination(angle) * 100)}%</dd></div>
+          <div className="rounded-lg bg-secondary p-3"><dt className="text-muted-foreground">Iluminado</dt><dd className="font-display text-xl">{Math.round(lunarState.illuminatedFraction * 100)}%</dd></div>
         </dl>
         <p className="mt-3 text-xs text-muted-foreground">Hemisferio norte (en el sur se invierte izquierda/derecha).</p>
       </div>

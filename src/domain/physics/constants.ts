@@ -22,3 +22,9 @@ export const EARTH_MOON_DISTANCE = 3.844e8;
 
 /** Sidereal orbital period of the Moon, in s. */
 export const LUNAR_SIDEREAL_PERIOD = 2_360_591.5104;
+
+/**
+ * Synodic period of the Moon, in s.
+ * This is SYNODIC_DAYS from src/lib/moon.ts multiplied by 86400 s/day.
+ */
+export const LUNAR_SYNODIC_PERIOD = 29.530588853 * 86400;
