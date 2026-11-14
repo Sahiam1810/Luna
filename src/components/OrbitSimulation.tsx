@@ -7,6 +7,8 @@ import { calculateLunarSystemState } from "@/domain/physics/lunarSystemState";
 import { calculatePhysicsReadout } from "@/domain/physics/physicsReadout";
 import { G, LUNAR_SIDEREAL_PERIOD, M_EARTH, M_MOON } from "@/domain/physics/constants";
 import { formatScientific } from "@/lib/format";
+import { calculatePhaseModelReadout } from "@/domain/physics/phaseModelReadout";
+import { PhaseModelSection } from "./PhaseModelSection";
 
 const SPEEDS = [0.5, 1, 2, 4];
 
@@ -39,6 +41,7 @@ export function OrbitSimulation() {
   const step = (d: number) => setAge((a) => (((a + d) % SYNODIC_DAYS) + SYNODIC_DAYS) % SYNODIC_DAYS);
   const lunarState = calculateLunarSystemState(age);
   const physics = calculatePhysicsReadout(lunarState);
+  const phaseModelReadout = calculatePhaseModelReadout(age);
   const phaseAngle = lunarState.angle - Math.PI;
   const idx = phaseIndex(age);
   const phase = PHASES[idx] ?? PHASES[0];
@@ -227,6 +230,7 @@ export function OrbitSimulation() {
           </div>
         </section>
       </div>
+      <PhaseModelSection ageDays={age} readout={phaseModelReadout} />
     </div>
   );
 }
