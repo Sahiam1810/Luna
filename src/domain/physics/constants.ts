@@ -28,3 +28,13 @@ export const LUNAR_SIDEREAL_PERIOD = 2_360_591.5104;
  * This is SYNODIC_DAYS from src/lib/moon.ts multiplied by 86400 s/day.
  */
 export const LUNAR_SYNODIC_PERIOD = 29.530588853 * 86400;
+
+/** Mean Earth-Sun distance (one astronomical unit), in m. */
+export const EARTH_SUN_DISTANCE = 1.495978707e11;
+
+/**
+ * Sidereal orbital period of the Earth, in s.
+ * NASA Earth Fact Sheet reports 365.256 days:
+ * https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
+ */
+export const EARTH_SIDEREAL_PERIOD = 365.256 * 86400;
