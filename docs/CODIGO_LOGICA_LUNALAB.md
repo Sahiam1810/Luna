@@ -235,3 +235,68 @@ a coordenadas SVG y mantiene el eje vertical de pantalla invertido.
 - La mezcla de ambos periodos es una simplificación educativa del marco Sol-fijo.
 - No se modelan excentricidad, perigeo, apogeo, perturbaciones solares, baricentro, inclinación, libración ni eclipses.
 - El modelo de fases no es una efeméride astronómica de alta precisión.
+
+## Cómo la posición determina la fase
+
+La implementación heliocéntrica de `src/domain/physics/lunarPosition.ts` usa tiempo `t` en segundos desde la luna nueva. Las funciones reales están en `lunarPosition.ts:46-74`:
+
+```ts
+export function calculateEarthPosition(time: number): Vector2 {
+  const earthAngle = calculateAngularVelocity(EARTH_SIDEREAL_PERIOD) * time;
+  return calculatePositionVector(EARTH_SUN_DISTANCE, earthAngle);
+}
+
+export function calculateMoonPositionRelativeToSun(time: number): Vector2 {
+  const lunarAngle =
+    NEW_MOON_ANGLE + calculateAngularVelocity(LUNAR_SIDEREAL_PERIOD) * time;
+  const earthPosition = calculateEarthPosition(time);
+  const moonRelativePosition = calculatePositionVector(EARTH_MOON_DISTANCE, lunarAngle);
+  return {
+    x: earthPosition.x + moonRelativePosition.x,
+    y: earthPosition.y + moonRelativePosition.y,
+  };
+}
+
+export function calculateRelativeAngle(time: number): number {
+  const lunarAngularVelocity = calculateAngularVelocity(LUNAR_SIDEREAL_PERIOD);
+  const earthAngularVelocity = calculateAngularVelocity(EARTH_SIDEREAL_PERIOD);
+  return NEW_MOON_ANGLE + (lunarAngularVelocity - earthAngularVelocity) * time;
+}
+```
+
+Las ecuaciones son `R_T = R(cos θT, sin θT)`, `R_M = R_T + r(cos θL, sin θL)` y `ψ = ψ0 + (ωL − ωT)t`, con `θT0 = 0`, `θL0 = ψ0 = π`. Las posiciones están en metros y los ángulos en radianes.
+
+El cálculo real de distancia e iluminación está en `lunarPosition.ts:76-107` y corresponde a `ρ² = R² + r² + 2Rr cos(θL − θT)` y `k = (1 + cos i)/2`, donde `i` es el ángulo entre Luna→Sol y Luna→Tierra.
+
+`phaseModelReadout.ts:40-90` transforma la edad lunar en segundos, reutiliza esas funciones, obtiene `i` a partir de los vectores y compara la geometría con la aproximación de Sol lejano:
+
+```ts
+const state = calculateLunarSystemState(ageDays);
+const timeDays = state.ageDays;
+const time = timeDays * DAY_SECONDS;
+const earthPosition = calculateEarthPosition(time);
+const moonPositionRelativeToSun = calculateMoonPositionRelativeToSun(time);
+const relativeAngleRadians = calculateRelativeAngle(time);
+const phaseAngleRadians = angleBetween(moonToSun, moonToEarth);
+const illuminatedFractionGeometric = calculateIlluminatedFractionFromGeometry(time);
+const illuminatedFractionApproximate = (1 + Math.cos(relativeAngleRadians)) / 2;
+```
+
+El tiempo está en segundos, las posiciones en metros, los ángulos en radianes y `k` es adimensional.
+
+### Casos clave obtenidos del código
+
+| Caso | ψ | ρ (m) | k geométrica |
+|---|---:|---:|---:|
+| Luna nueva | π | 149213470700 | 0 |
+| Cuarto creciente | 3π/2 | 149598364567,711 | 0,5012847734 |
+| Luna llena | 2π | 149982270700 | 1 |
+| Cuarto menguante | 5π/2 | 149598364567,711 | 0,5012847734 |
+
+### Rotación sincrónica: por qué la Luna muestra siempre la misma cara
+
+`calculateMoonRotationAngle` usa `φ = π + ωL t` (`lunarPosition.ts:110-118`). La cara cercana es el eje opuesto, `φ + π`, y `calculateNearSideOffsetToEarth` compara ese eje con la dirección Luna→Tierra (`lunarPosition.ts:120-135`). El desfase permanece aproximadamente en cero: la cara cercana apunta a la Tierra, no al Sol. Por eso el ángulo de esa cara respecto al Sol cambia.
+
+### Aproximaciones y limitaciones actualizadas
+
+El modelo vectorial usa órbitas circulares y coplanarias, distancia media y un Sol lejano para la aproximación de iluminación del simulador. No incluye la excentricidad real de la órbita lunar (`0,0549`), su inclinación aproximada de `5,1°`, perturbaciones, libración, eclipses ni una efeméride de alta precisión.

@@ -1,76 +1,79 @@
 # Validación de LunaLab
 
-Los resultados de este documento fueron obtenidos ejecutando las funciones de
-`physicsReadout.ts` y `validation.ts` con las constantes actuales del proyecto.
+Los valores de este documento fueron generados ejecutando `validation.ts`,
+`phaseModelReadout.ts` y las pruebas automatizadas con las constantes actuales.
 
-## Comparación de magnitudes
+## Comparación ampliada
 
-| Magnitud | Valor del modelo | Referencia | Error | Fuente |
+| Magnitud | Valor del modelo | Referencia | Error | Tipo y fuente |
 |---|---:|---:|---:|---|
-| Velocidad orbital | 1023,1573 m/s | 1022 m/s | 0,1132 % | NASA Moon Fact Sheet |
-| Periodo sinódico | 29,530588853 días | 29,53 días | 0,00199 % | NASA Moon Fact Sheet |
-| F/m Luna frente a a_c | 0,00269757 frente a 0,00272334 m/s² | Verificación interna | 0,9551 % | Modelo LunaLab |
-| Ec frente a −Ep/2 | 3,84299×10²⁸ frente a 3,80663×10²⁸ J | Verificación interna | 0,9551 % | Modelo LunaLab |
+| Velocidad orbital | 1023,1572982615 m/s | 1022 m/s | 0,1132385774 % | Referencia independiente: NASA Moon Fact Sheet |
+| Periodo sinódico derivado | 29,5305905868 d | 29,53 d | 0,0019999552 % | Referencia independiente: NASA Moon Fact Sheet |
+| Periodo sinódico derivado | 29,5305905868 d | 29,5305888531 d | 0,0000058707 % | Referencia independiente: USNO, Explanatory Supplement Eq. 15.2 |
+| Distancia Sol-Luna, luna nueva | 149213470700 m | 149213470700 m | 0 % | Verificación de consistencia geométrica interna: R − r |
+| Distancia Sol-Luna, luna llena | 149982270700 m | 149982270700 m | 0 % | Verificación de consistencia geométrica interna: R + r |
+| Diferencia máxima de iluminación | 0,1284773404 puntos porcentuales | 0,1284777645 puntos porcentuales | 0,0003300929 % | Verificación interna; escala teórica r/(2ρ) |
+| F/m Luna frente a a_c | 0,0026975736 frente a 0,0027233373 m/s² | Verificación interna | 0,9550678682 % | Verificación de consistencia interna |
+| Ec frente a −Ep/2 | 3,842989496 × 10²⁸ frente a 3,806633562 × 10²⁸ J | Verificación interna | 0,9550678682 % | Verificación de consistencia interna |
 
-Fuente externa para velocidad media, periodo sinódico y periodo sideral:
+La referencia NASA de `29,53 días` está redondeada a dos decimales y por eso
+domina el error porcentual de esa fila. La referencia precisa adicional procede
+del USNO, *Explanatory Supplement to the Astronomical Almanac*, ecuación 15.2:
 
-- NASA Moon Fact Sheet: https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
+<https://aa.usno.navy.mil/downloads/c15_usb_online.pdf>
 
-## Valores físicos del modelo
+NASA Moon Fact Sheet:
 
-```text
-Distancia:              384400000 m
-Velocidad orbital:      1023.1572982614726 m/s
-Velocidad angular:      0.0000026616995272150692 rad/s
-Aceleración centrípeta: 0.0027233372970492096 m/s²
-Fuerza gravitacional:   198055856502802840000 N
-Energía cinética:       3.842989495994564e28 J
-Energía potencial:      -7.613267123967741e28 J
-Energía total:          -3.7702776279731776e28 J
-```
+<https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html>
+
+Las filas `R − r`, `R + r` y `r/(2ρ)` no son mediciones experimentales: son
+verificaciones de consistencia matemática interna del modelo geométrico.
 
 ## Eventos astronómicos
 
-El modelo se compara con fechas de eventos reales. La distancia para luna nueva
-se mide al límite circular más cercano (`0` o `SYNODIC_DAYS`); para luna llena
-se mide respecto a `SYNODIC_DAYS / 2`.
+Las edades se obtienen con `moonAgeDays(date)` y la iluminación con
+`calculatePhaseModelReadout(age).illuminatedFractionGeometric`.
 
-| Evento | Fecha UTC | Edad calculada | Fase del modelo | Diferencia | Fuente |
-|---|---|---:|---|---:|---|
-| Luna nueva de referencia | 2000-01-06 18:14 | 0,0000 d | Luna nueva | 0,0000 d | `src/lib/moon.ts` |
-| Eclipse lunar total | 2026-03-03 11:34:52 | 14,3426 d | Luna llena | 0,4227 d | NASA GSFC |
-| Eclipse solar total | 2026-08-12 17:47:05 | 28,9482 d | Luna nueva | 0,5824 d | NASA GSFC |
+| Evento | Fecha UTC | Edad lunar | Fase del modelo | k geométrica | Desviación |
+|---|---|---:|---|---:|---:|
+| Luna nueva de referencia | 2000-01-06 18:14 | 0,0000000000 d | Luna nueva | 0 | 0,0000000000 d |
+| Eclipse lunar total | 2026-03-03 11:34:52 | 14,3426245551 d | Luna llena | 0,9979897847 | 0,4226698714 d |
+| Eclipse solar total | 2026-08-12 17:47:05 | 28,9481640864 d | Luna nueva | 0,0038539674 | 0,5824247666 d |
+
+Ningún caso supera un día. Las desviaciones se conservan sin ajuste.
 
 Fuentes de los eventos:
 
-- Eclipse lunar total del 3 de marzo de 2026: https://eclipse.gsfc.nasa.gov/lunar.html
-- Eclipse solar total del 12 de agosto de 2026: https://eclipse.gsfc.nasa.gov/OH/OH2026.html
-- La fecha de referencia de luna nueva está definida directamente en `src/lib/moon.ts`.
-
-Todos los eventos quedan dentro del criterio de aceptación de un día. Esto no
-convierte al algoritmo en una efeméride: el resultado se beneficia de usar un
-mes sinódico medio y puede desviarse para otros eventos.
+- <https://eclipse.gsfc.nasa.gov/lunar.html>
+- <https://eclipse.gsfc.nasa.gov/OH/OH2026.html>
 
 ## Pruebas automatizadas
 
-La ejecución final fue:
+La ejecución final fue: **13 archivos de prueba y 80 pruebas aprobadas**.
 
-```text
-11 archivos de prueba aprobados
-65 pruebas aprobadas
-```
+| Archivo | Pruebas declaradas |
+|---|---:|
+| `energy.test.ts` | 4 |
+| `app-routing.test.tsx` | 1 |
+| `format.test.ts` | 3 |
+| `gravity.test.ts` | 6 |
+| `lunarPosition.test.ts` | 9 |
+| `lunarSystemState.test.ts` | 11 |
+| `moon.test.ts` | 8 |
+| `orbital.test.ts` | 6 |
+| `orbitalModel.test.ts` | 13 |
+| `phaseModelReadout.test.ts` | 5 |
+| `physics-constants.test.ts` | 2 |
+| `physicsReadout.test.ts` | 6 |
+| `validation.test.ts` | 6 |
 
-Las pruebas nuevas cubren:
+Las pruebas nuevas de `validation.test.ts` cubren referencias independientes,
+consistencias geométricas, diferencia de iluminación, eventos de eclipse y
+finitud de los resultados.
 
-- `validation.test.ts`: error porcentual, referencias y eventos astronómicos.
-- `format.test.ts`: formato de números grandes, pequeños y normales.
+## Limitaciones
 
-Las pruebas anteriores continúan cubriendo fases, constantes, gravedad, energía,
-movimiento orbital, modelo vectorial y estado único.
-
-## Conclusión
-
-Las referencias externas y las verificaciones internas son coherentes con el
-modelo circular simplificado. Las diferencias inferiores al 1 % no deben
-interpretarse como precisión astronómica; son una validación educativa de las
-escalas y relaciones del modelo actual.
+El modelo usa órbitas circulares coplanarias, distancia media y periodos medios.
+No incluye excentricidad lunar real (`0,0549`), inclinación orbital aproximada
+de `5,1°`, perturbaciones, libración ni eclipses. No es una efeméride de alta
+precisión.

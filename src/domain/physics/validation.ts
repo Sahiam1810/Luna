@@ -1,11 +1,27 @@
 import { SYNODIC_DAYS, moonAgeDays, phaseAt } from "@/lib/moon";
-import { M_MOON } from "./constants";
+import {
+  EARTH_MOON_DISTANCE,
+  EARTH_SIDEREAL_PERIOD,
+  EARTH_SUN_DISTANCE,
+  LUNAR_SIDEREAL_PERIOD,
+  LUNAR_SYNODIC_PERIOD,
+  M_MOON,
+} from "./constants";
+import {
+  calculateIlluminatedFractionFromGeometry,
+  calculateRelativeAngle,
+  calculateSunMoonDistance,
+  calculateSynodicPeriod,
+} from "./lunarPosition";
+import { calculatePhaseModelReadout } from "./phaseModelReadout";
 import type { PhysicsReadout } from "./physicsReadout";
 
 /** NASA Moon Fact Sheet: https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html */
 const REFERENCE_ORBITAL_SPEED = 1_022;
 /** NASA Moon Fact Sheet: https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html */
 const REFERENCE_SYNODIC_PERIOD_DAYS = 29.53;
+/** USNO, Explanatory Supplement to the Astronomical Almanac, Eq. 15.2. */
+const REFERENCE_SYNODIC_PERIOD_USNO_DAYS = 29.5305888531;
 
 export type ValidationComparison = {
   magnitud: string;
@@ -23,6 +39,7 @@ export type PhaseEventValidation = {
   edadLunar: number;
   faseModelo: string;
   diferenciaDias: number;
+  fraccionIluminadaGeometrica: number;
   fuente: string;
 };
 
@@ -36,6 +53,24 @@ export function calculatePercentError(measured: number, theoretical: number): nu
 }
 
 export function calculateValidationComparison(readout: PhysicsReadout): ValidationComparison[] {
+  const derivedSynodicPeriodSeconds =
+    calculateSynodicPeriod(LUNAR_SIDEREAL_PERIOD, EARTH_SIDEREAL_PERIOD);
+  const derivedSynodicPeriodDays = derivedSynodicPeriodSeconds / 86400;
+  const newMoonDistance = calculateSunMoonDistance(0);
+  const fullMoonDistance = calculateSunMoonDistance(derivedSynodicPeriodSeconds / 2);
+  let maximumIlluminationDifference = 0;
+
+  for (let index = 0; index <= 120; index += 1) {
+    const time = (LUNAR_SYNODIC_PERIOD * index) / 120;
+    maximumIlluminationDifference = Math.max(
+      maximumIlluminationDifference,
+      Math.abs(
+        calculateIlluminatedFractionFromGeometry(time) -
+          (1 + Math.cos(calculateRelativeAngle(time))) / 2,
+      ),
+    );
+  }
+
   return [
     {
       magnitud: "Velocidad orbital",
@@ -43,15 +78,50 @@ export function calculateValidationComparison(readout: PhysicsReadout): Validati
       valorReferencia: REFERENCE_ORBITAL_SPEED,
       unidad: "m/s",
       errorPorcentual: calculatePercentError(readout.speed, REFERENCE_ORBITAL_SPEED),
-      fuente: "NASA Moon Fact Sheet",
+      fuente: "Referencia independiente: NASA Moon Fact Sheet",
     },
     {
       magnitud: "Periodo sinódico",
-      valorModelo: readout.synodicPeriodDays,
+      valorModelo: derivedSynodicPeriodDays,
       valorReferencia: REFERENCE_SYNODIC_PERIOD_DAYS,
       unidad: "días",
-      errorPorcentual: calculatePercentError(readout.synodicPeriodDays, REFERENCE_SYNODIC_PERIOD_DAYS),
-      fuente: "NASA Moon Fact Sheet",
+      errorPorcentual: calculatePercentError(derivedSynodicPeriodDays, REFERENCE_SYNODIC_PERIOD_DAYS),
+      fuente: "Referencia independiente: NASA Moon Fact Sheet",
+    },
+    {
+      magnitud: "Periodo sinódico derivado frente a USNO",
+      valorModelo: derivedSynodicPeriodDays,
+      valorReferencia: REFERENCE_SYNODIC_PERIOD_USNO_DAYS,
+      unidad: "días",
+      errorPorcentual: calculatePercentError(derivedSynodicPeriodDays, REFERENCE_SYNODIC_PERIOD_USNO_DAYS),
+      fuente: "Referencia independiente: USNO, Explanatory Supplement Eq. 15.2",
+    },
+    {
+      magnitud: "Distancia Sol-Luna en luna nueva",
+      valorModelo: newMoonDistance,
+      valorReferencia: EARTH_SUN_DISTANCE - EARTH_MOON_DISTANCE,
+      unidad: "m",
+      errorPorcentual: calculatePercentError(newMoonDistance, EARTH_SUN_DISTANCE - EARTH_MOON_DISTANCE),
+      fuente: "Verificación de consistencia geométrica interna: R - r",
+    },
+    {
+      magnitud: "Distancia Sol-Luna en luna llena",
+      valorModelo: fullMoonDistance,
+      valorReferencia: EARTH_SUN_DISTANCE + EARTH_MOON_DISTANCE,
+      unidad: "m",
+      errorPorcentual: calculatePercentError(fullMoonDistance, EARTH_SUN_DISTANCE + EARTH_MOON_DISTANCE),
+      fuente: "Verificación de consistencia geométrica interna: R + r",
+    },
+    {
+      magnitud: "Diferencia máxima de iluminación",
+      valorModelo: maximumIlluminationDifference * 100,
+      valorReferencia: (EARTH_MOON_DISTANCE / (2 * EARTH_SUN_DISTANCE)) * 100,
+      unidad: "puntos porcentuales",
+      errorPorcentual: calculatePercentError(
+        maximumIlluminationDifference,
+        EARTH_MOON_DISTANCE / (2 * EARTH_SUN_DISTANCE),
+      ),
+      fuente: "Verificación de consistencia geométrica interna; escala teórica r/(2ρ)",
     },
     {
       magnitud: "F/m Luna frente a a_c",
@@ -59,15 +129,15 @@ export function calculateValidationComparison(readout: PhysicsReadout): Validati
       valorReferencia: readout.centripetalAcceleration,
       unidad: "m/s²",
       errorPorcentual: readout.gravitationalAccelerationDifferencePercent,
-      fuente: "Verificación interna del modelo",
+      fuente: "Verificación de consistencia interna del modelo",
     },
     {
-      magnitud: "Ec frente a −Ep/2",
+      magnitud: "Ec frente a -Ep/2",
       valorModelo: readout.kineticEnergy,
       valorReferencia: -readout.potentialEnergy / 2,
       unidad: "J",
       errorPorcentual: readout.kineticPotentialDifferencePercent,
-      fuente: "Verificación interna del modelo",
+      fuente: "Verificación de consistencia interna del modelo",
     },
   ];
 }
@@ -96,6 +166,7 @@ export function calculatePhaseEventValidation(): PhaseEventValidation[] {
 
   return events.map((event) => {
     const age = moonAgeDays(new Date(event.fecha));
+    const phaseModel = calculatePhaseModelReadout(age);
     const expectedAge = event.faseEsperada === "Luna llena" ? SYNODIC_DAYS / 2 : 0;
     const difference =
       event.faseEsperada === "Luna nueva"
@@ -109,8 +180,8 @@ export function calculatePhaseEventValidation(): PhaseEventValidation[] {
       edadLunar: age,
       faseModelo: phaseAt(age).name,
       diferenciaDias: difference,
+      fraccionIluminadaGeometrica: phaseModel.illuminatedFractionGeometric,
       fuente: event.fuente,
     };
   });
 }
-

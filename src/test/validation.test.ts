@@ -22,13 +22,26 @@ describe("validation helpers", () => {
     expect(() => calculatePercentError(Number.NEGATIVE_INFINITY, 8)).toThrow();
   });
 
-  it("compares model values with finite errors", () => {
+  it("compares independent references and internal consistency values", () => {
     const comparison = calculateValidationComparison(calculatePhysicsReadout(calculateLunarSystemState(0)));
 
-    expect(comparison).toHaveLength(4);
+    expect(comparison).toHaveLength(8);
     expect(comparison.every((item) => Number.isFinite(item.errorPorcentual))).toBe(true);
+    expect(comparison.every((item) => item.fuente.length > 0)).toBe(true);
     expect(comparison.find((item) => item.magnitud === "Velocidad orbital")?.errorPorcentual).toBeLessThan(1);
     expect(comparison.find((item) => item.magnitud === "Periodo sinódico")?.valorReferencia).toBe(29.53);
+    expect(comparison.find((item) => item.magnitud.includes("USNO"))?.errorPorcentual).toBeLessThan(0.001);
+    expect(comparison.find((item) => item.magnitud.includes("luna nueva"))?.errorPorcentual).toBeCloseTo(0, 10);
+    expect(comparison.find((item) => item.magnitud.includes("luna llena"))?.errorPorcentual).toBeCloseTo(0, 10);
+    expect(comparison.find((item) => item.magnitud.includes("iluminación"))?.valorModelo).toBeGreaterThan(0);
+  });
+
+  it("validates vector illumination differences at representative ages", () => {
+    const comparison = calculateValidationComparison(calculatePhysicsReadout(calculateLunarSystemState(0)));
+    const illumination = comparison.find((item) => item.magnitud.includes("iluminación"));
+
+    expect(illumination?.valorModelo).toBeLessThan(0.2);
+    expect(illumination?.valorReferencia).toBeGreaterThan(0);
   });
 
   it("validates the selected astronomical phase events within one day", () => {
@@ -39,6 +52,7 @@ describe("validation helpers", () => {
     expect(events[1]?.faseModelo).toBe("Luna llena");
     expect(events[2]?.faseModelo).toBe("Luna nueva");
     expect(events.every((event) => event.diferenciaDias <= 1)).toBe(true);
+    expect(events.every((event) => Number.isFinite(event.fraccionIluminadaGeometrica))).toBe(true);
     expect(events[0]?.edadLunar).toBeCloseTo(0);
     expect(events[1]?.diferenciaDias).toBeLessThan(1);
     expect(events[2]?.diferenciaDias).toBeLessThan(1);
