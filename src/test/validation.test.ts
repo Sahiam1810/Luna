@@ -25,10 +25,12 @@ describe("validation helpers", () => {
   it("compares independent references and internal consistency values", () => {
     const comparison = calculateValidationComparison(calculatePhysicsReadout(calculateLunarSystemState(0)));
 
-    expect(comparison).toHaveLength(8);
+    expect(comparison).toHaveLength(10);
     expect(comparison.every((item) => Number.isFinite(item.errorPorcentual))).toBe(true);
     expect(comparison.every((item) => item.fuente.length > 0)).toBe(true);
     expect(comparison.find((item) => item.magnitud === "Velocidad orbital")?.errorPorcentual).toBeLessThan(1);
+    expect(comparison.find((item) => item.magnitud === "Velocidad orbital cinemática")?.errorPorcentual).toBeLessThan(1);
+    expect(comparison.find((item) => item.magnitud.includes("Periodo de Kepler"))?.errorPorcentual).toBeCloseTo(0.4763991533, 8);
     expect(comparison.find((item) => item.magnitud === "Periodo sinódico")?.valorReferencia).toBe(29.53);
     expect(comparison.find((item) => item.magnitud.includes("USNO"))?.errorPorcentual).toBeLessThan(0.001);
     expect(comparison.find((item) => item.magnitud.includes("luna nueva"))?.errorPorcentual).toBeCloseTo(0, 10);

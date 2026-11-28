@@ -7,14 +7,16 @@ Los valores de este documento fueron generados ejecutando `validation.ts`,
 
 | Magnitud | Valor del modelo | Referencia | Error | Tipo y fuente |
 |---|---:|---:|---:|---|
-| Velocidad orbital | 1023,1572982615 m/s | 1022 m/s | 0,1132385774 % | Referencia independiente: NASA Moon Fact Sheet |
+| Velocidad orbital dinámica | 1018,3060966387 m/s | 1022 m/s | 0,3614386851 % | Referencia independiente: NASA Moon Fact Sheet |
+| Velocidad orbital cinemática | 1023,1572982615 m/s | 1022 m/s | 0,1132385774 % | Referencia independiente: NASA Moon Fact Sheet |
+| Periodo de Kepler frente al sideral observado | 27,4518211617 d | 27,321661 d | 0,4763991533 % | Comparación dinámica frente al periodo observado |
 | Periodo sinódico derivado | 29,5305905868 d | 29,53 d | 0,0019999552 % | Referencia independiente: NASA Moon Fact Sheet |
 | Periodo sinódico derivado | 29,5305905868 d | 29,5305888531 d | 0,0000058707 % | Referencia independiente: USNO, Explanatory Supplement Eq. 15.2 |
 | Distancia Sol-Luna, luna nueva | 149213470700 m | 149213470700 m | 0 % | Verificación de consistencia geométrica interna: R − r |
 | Distancia Sol-Luna, luna llena | 149982270700 m | 149982270700 m | 0 % | Verificación de consistencia geométrica interna: R + r |
 | Diferencia máxima de iluminación | 0,1284773404 puntos porcentuales | 0,1284777645 puntos porcentuales | 0,0003300929 % | Verificación interna; escala teórica r/(2ρ) |
-| F/m Luna frente a a_c | 0,0026975736 frente a 0,0027233373 m/s² | Verificación interna | 0,9550678682 % | Verificación de consistencia interna |
-| Ec frente a −Ep/2 | 3,842989496 × 10²⁸ frente a 3,806633562 × 10²⁸ J | Verificación interna | 0,9550678682 % | Verificación de consistencia interna |
+| F/m Luna frente a a_c (identidad del modelo) | 0,0026975736 frente a 0,0026975736 m/s² | Identidad del modelo | 0 % | No es validación independiente |
+| Ec frente a −Ep/2 (identidad del modelo) | 3,806633562 × 10²⁸ frente a 3,806633562 × 10²⁸ J | Identidad del modelo | 0 % | No es validación independiente |
 
 La referencia NASA de `29,53 días` está redondeada a dos decimales y por eso
 domina el error porcentual de esa fila. La referencia precisa adicional procede

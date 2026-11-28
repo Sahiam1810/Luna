@@ -4,6 +4,26 @@ import { calculatePhaseModelReadout } from "@/domain/physics/phaseModelReadout";
 import { SYNODIC_DAYS } from "@/lib/moon";
 
 describe("phase model readout", () => {
+  it("preserves position geometry after the dynamic speed change", () => {
+    const expected = [
+      { age: 0, earthX: 1, earthY: 0, moonX: 149213470700 / 1.495978707e11, moonY: 0, psi: Math.PI, rho: 149213470700 / 1.495978707e11, k: 0 },
+      { age: 7.4, earthX: 148387447204.62747 / 1.495978707e11, earthY: 18991799021.362194 / 1.495978707e11, moonX: 148437655082.5652 / 1.495978707e11, moonY: 18610692042.951942 / 1.495978707e11, psi: 4.7160810180039086, rho: 149599783772.331 / 1.495978707e11, k: 0.5031307522242451 },
+      { age: 14.8, earthX: 144775764230.43494 / 1.495978707e11, earthY: 37676265864.16751 / 1.495978707e11, moonX: 145147048564.42554 / 1.495978707e11, moonY: 37775821393.06052 / 1.495978707e11, psi: 6.290569382418024, rho: 149982260247.2843 / 1.495978707e11, k: 0.9999864387017567 },
+      { age: 22, earthX: 139012252840.15366 / 1.495978707e11, earthY: 55273108093.16865 / 1.495978707e11, moonX: 138881537831.45288 / 1.495978707e11, moonY: 55634600757.68669 / 1.495978707e11, psi: 7.82250400725338, rho: 149610462040.24796 / 1.495978707e11, k: 0.5170195595232416 },
+    ];
+
+    for (const baseline of expected) {
+      const actual = calculatePhaseModelReadout(baseline.age);
+      expect(actual.earthPosition.x / 1.495978707e11).toBeCloseTo(baseline.earthX, 12);
+      expect(actual.earthPosition.y / 1.495978707e11).toBeCloseTo(baseline.earthY, 12);
+      expect(actual.moonPositionRelativeToSun.x / 1.495978707e11).toBeCloseTo(baseline.moonX, 12);
+      expect(actual.moonPositionRelativeToSun.y / 1.495978707e11).toBeCloseTo(baseline.moonY, 12);
+      expect(actual.relativeAngleRadians).toBeCloseTo(baseline.psi, 12);
+      expect(actual.sunMoonDistance / 1.495978707e11).toBeCloseTo(baseline.rho, 12);
+      expect(actual.illuminatedFractionGeometric).toBeCloseTo(baseline.k, 12);
+    }
+  });
+
   it("describes the new moon geometry", () => {
     const readout = calculatePhaseModelReadout(0);
 

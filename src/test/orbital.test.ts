@@ -3,10 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   EARTH_MOON_DISTANCE,
   LUNAR_SIDEREAL_PERIOD,
+  M_EARTH,
 } from "@/domain/physics/constants";
 import {
   calculateAngularVelocity,
   calculateCentripetalAcceleration,
+  calculateCircularOrbitSpeed,
   calculateOrbitalSpeed,
 } from "@/domain/physics/orbital";
 
@@ -16,6 +18,13 @@ describe("orbital mechanics", () => {
   it("calculates the approximate Earth-Moon orbital speed", () => {
     expect(speed).toBeCloseTo(1023, 0);
     expect(speed / 1000).toBeCloseTo(1.02, 2);
+  });
+
+  it("calculates the dynamic circular-orbit speed from gravity", () => {
+    const dynamicSpeed = calculateCircularOrbitSpeed(M_EARTH, EARTH_MOON_DISTANCE);
+
+    expect(dynamicSpeed).toBeCloseTo(1018.3060966387332, 10);
+    expect(dynamicSpeed).toBeCloseTo(Math.sqrt((6.6743e-11 * M_EARTH) / EARTH_MOON_DISTANCE), 10);
   });
 
   it("calculates positive angular velocity", () => {
@@ -43,6 +52,14 @@ describe("orbital mechanics", () => {
     expect(() => calculateOrbitalSpeed(EARTH_MOON_DISTANCE, -1)).toThrow();
     expect(() => calculateOrbitalSpeed(Number.NaN, LUNAR_SIDEREAL_PERIOD)).toThrow();
     expect(() => calculateOrbitalSpeed(EARTH_MOON_DISTANCE, Number.POSITIVE_INFINITY)).toThrow();
+  });
+
+  it("rejects invalid dynamic orbital speed inputs", () => {
+    expect(() => calculateCircularOrbitSpeed(0, EARTH_MOON_DISTANCE)).toThrow();
+    expect(() => calculateCircularOrbitSpeed(-1, EARTH_MOON_DISTANCE)).toThrow();
+    expect(() => calculateCircularOrbitSpeed(Number.NaN, EARTH_MOON_DISTANCE)).toThrow();
+    expect(() => calculateCircularOrbitSpeed(M_EARTH, 0)).toThrow();
+    expect(() => calculateCircularOrbitSpeed(M_EARTH, Number.POSITIVE_INFINITY)).toThrow();
   });
 
   it("rejects invalid angular velocity periods", () => {

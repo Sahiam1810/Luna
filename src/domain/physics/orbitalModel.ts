@@ -1,11 +1,13 @@
 import {
   EARTH_MOON_DISTANCE,
   LUNAR_SIDEREAL_PERIOD,
+  M_EARTH,
 } from "./constants";
 import { calculateGravitationalForce } from "./gravity";
 import {
   calculateAngularVelocity,
   calculateCentripetalAcceleration,
+  calculateCircularOrbitSpeed,
   calculateOrbitalSpeed,
 } from "./orbital";
 
@@ -86,6 +88,21 @@ export function calculateVelocityVector(radius: number, period: number, angle: n
   };
 }
 
+function calculateDynamicVelocityVector(radius: number, centralMass: number, angle: number): Vector2 {
+  if (!Number.isFinite(radius) || radius <= 0) {
+    throw new Error("radius must be a finite number greater than zero.");
+  }
+  if (!Number.isFinite(centralMass) || centralMass <= 0) {
+    throw new Error("centralMass must be a finite number greater than zero.");
+  }
+  if (!Number.isFinite(angle)) {
+    throw new Error("angle must be a finite number.");
+  }
+
+  const speed = calculateCircularOrbitSpeed(centralMass, radius);
+  return { x: -speed * Math.sin(angle), y: speed * Math.cos(angle) };
+}
+
 /**
  * Calculates the centripetal acceleration vector toward the Earth's center.
  *
@@ -117,6 +134,22 @@ export function calculateCentripetalAccelerationVector(
   };
 }
 
+function calculateDynamicCentripetalAccelerationVector(
+  radius: number,
+  centralMass: number,
+  angle: number,
+): Vector2 {
+  if (!Number.isFinite(angle)) {
+    throw new Error("angle must be a finite number.");
+  }
+  const speed = calculateCircularOrbitSpeed(centralMass, radius);
+  const centripetalAcceleration = calculateCentripetalAcceleration(speed, radius);
+  return {
+    x: -centripetalAcceleration * Math.cos(angle),
+    y: -centripetalAcceleration * Math.sin(angle),
+  };
+}
+
 /**
  * Builds the complete circular-orbit state for the mean Earth-Moon system.
  *
@@ -130,15 +163,16 @@ export function calculateLunarOrbitState(angle: number) {
 
   const radius = EARTH_MOON_DISTANCE;
   const period = LUNAR_SIDEREAL_PERIOD;
-  const speed = calculateOrbitalSpeed(radius, period);
+  // The observed sidereal period drives angular position; dynamics use v=sqrt(GM/r).
+  const speed = calculateCircularOrbitSpeed(M_EARTH, radius);
   const angularVelocity = calculateAngularVelocity(period);
   const centripetalAcceleration = calculateCentripetalAcceleration(speed, radius);
 
   return {
     angle,
     position: calculatePositionVector(radius, angle),
-    velocity: calculateVelocityVector(radius, period, angle),
-    acceleration: calculateCentripetalAccelerationVector(radius, period, angle),
+    velocity: calculateDynamicVelocityVector(radius, M_EARTH, angle),
+    acceleration: calculateDynamicCentripetalAccelerationVector(radius, M_EARTH, angle),
     speed,
     centripetalAcceleration,
     angularVelocity,

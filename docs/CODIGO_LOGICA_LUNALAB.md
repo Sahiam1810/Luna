@@ -116,9 +116,16 @@ export function calculateCentripetalAcceleration(speed: number, distance: number
 
 Ecuaciones:
 
-- Velocidad circular: `v = 2πr / T`; resultado en m/s.
+- Velocidad dinámica: `v = √(GM/r)`; resultado en m/s.
+- Velocidad cinemática: `v = 2πr / T`; resultado en m/s.
 - Velocidad angular: `ω = 2π / T`; resultado en rad/s.
 - Aceleración centrípeta: `a_c = v² / r`; resultado en m/s².
+
+La velocidad dinámica principal es `v = √(GM/r)`, derivada de `GMm/r² = mv²/r`.
+La función `calculateOrbitalSpeed` conserva `v = 2πr/T` como velocidad cinemática
+calculada a partir del periodo observado. El modelo usa la velocidad dinámica
+para vectores, aceleración y energías; el periodo sideral observado continúa
+gobernando la velocidad angular y las posiciones.
 
 ## Energía
 
@@ -173,7 +180,7 @@ export function calculatePositionVector(radius: number, angle: number): Vector2 
 }
 
 export function calculateVelocityVector(radius: number, period: number, angle: number): Vector2 {
-  const speed = calculateOrbitalSpeed(radius, period);
+  const speed = calculateCircularOrbitSpeed(M_EARTH, radius);
   return {
     x: -speed * Math.sin(angle),
     y: speed * Math.cos(angle),
@@ -185,7 +192,7 @@ export function calculateCentripetalAccelerationVector(
   period: number,
   angle: number,
 ): Vector2 {
-  const speed = calculateOrbitalSpeed(radius, period);
+  const speed = calculateCircularOrbitSpeed(M_EARTH, radius);
   const centripetalAcceleration = calculateCentripetalAcceleration(speed, radius);
   return {
     x: -centripetalAcceleration * Math.cos(angle),

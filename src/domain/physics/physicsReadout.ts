@@ -1,4 +1,5 @@
 import {
+  G,
   LUNAR_SIDEREAL_PERIOD,
   LUNAR_SYNODIC_PERIOD,
   M_EARTH,
@@ -10,12 +11,17 @@ import {
   calculateKineticEnergy,
 } from "./energy";
 import { calculateLunarSystemState } from "./lunarSystemState";
+import { calculateOrbitalSpeed } from "./orbital";
 
 type LunarSystemState = ReturnType<typeof calculateLunarSystemState>;
 
 export type PhysicsReadout = {
   distance: number;
   speed: number;
+  kinematicSpeed: number;
+  keplerPeriodDays: number;
+  kinematicSpeedDifferencePercent: number;
+  keplerPeriodDifferencePercent: number;
   angularVelocity: number;
   centripetalAcceleration: number;
   gravitationalForce: number;
@@ -65,6 +71,14 @@ export function calculatePhysicsReadout(state: LunarSystemState): PhysicsReadout
   const potentialEnergy = calculateGravitationalPotentialEnergy(M_EARTH, M_MOON, distance);
   const totalEnergy = kineticEnergy + potentialEnergy;
   const gravitationalAcceleration = gravitationalForce / M_MOON;
+  const kinematicSpeed = calculateOrbitalSpeed(distance, LUNAR_SIDEREAL_PERIOD);
+  const keplerPeriodSeconds = 2 * Math.PI * Math.sqrt(distance ** 3 / (G * M_EARTH));
+  const keplerPeriodDays = keplerPeriodSeconds / 86400;
+  const kinematicSpeedDifferencePercent =
+    (Math.abs(kinematicSpeed - speed) / speed) * 100;
+  const keplerPeriodDifferencePercent =
+    (Math.abs(keplerPeriodSeconds - LUNAR_SIDEREAL_PERIOD) / LUNAR_SIDEREAL_PERIOD) * 100;
+  // These remain exposed for the existing readout, but are identities of the dynamic model.
   const gravitationalAccelerationDifferencePercent =
     (Math.abs(gravitationalAcceleration - centripetalAcceleration) / gravitationalAcceleration) * 100;
   const referenceKineticEnergy = -potentialEnergy / 2;
@@ -74,6 +88,10 @@ export function calculatePhysicsReadout(state: LunarSystemState): PhysicsReadout
   return {
     distance,
     speed,
+    kinematicSpeed,
+    keplerPeriodDays,
+    kinematicSpeedDifferencePercent,
+    keplerPeriodDifferencePercent,
     angularVelocity,
     centripetalAcceleration,
     gravitationalForce,

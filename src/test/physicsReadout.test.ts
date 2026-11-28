@@ -17,7 +17,7 @@ describe("calculatePhysicsReadout", () => {
     const readout = calculatePhysicsReadout(calculateLunarSystemState(0));
 
     expect(readout.distance).toBeCloseTo(EARTH_MOON_DISTANCE, 5);
-    expect(readout.speed).toBeCloseTo(1023, 0);
+    expect(readout.speed).toBeCloseTo(1018, 0);
     expect(readout.gravitationalForce / 1.98e20).toBeCloseTo(1, 2);
     expect(readout.totalEnergy).toBeLessThan(0);
   });
@@ -40,11 +40,13 @@ describe("calculatePhysicsReadout", () => {
     expect(readout.potentialEnergy).toBeLessThan(0);
   });
 
-  it("reports the two physical consistency checks within two percent", () => {
+  it("reports the dynamic identities and kinematic comparisons", () => {
     const readout = calculatePhysicsReadout(calculateLunarSystemState(0));
 
-    expect(readout.gravitationalAccelerationDifferencePercent).toBeLessThan(2);
-    expect(readout.kineticPotentialDifferencePercent).toBeLessThan(2);
+    expect(readout.gravitationalAccelerationDifferencePercent).toBeCloseTo(0, 12);
+    expect(readout.kineticPotentialDifferencePercent).toBeCloseTo(0, 12);
+    expect(readout.kinematicSpeedDifferencePercent).toBeCloseTo(0.4763991533, 8);
+    expect(readout.keplerPeriodDifferencePercent).toBeCloseTo(0.4763991533, 8);
   });
 
   it("keeps circular-orbit magnitudes constant as the angle changes", () => {

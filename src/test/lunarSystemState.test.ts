@@ -2,11 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   EARTH_MOON_DISTANCE,
-  LUNAR_SIDEREAL_PERIOD,
   LUNAR_SYNODIC_PERIOD,
 } from "@/domain/physics/constants";
 import { calculateLunarSystemState } from "@/domain/physics/lunarSystemState";
-import { calculateOrbitalSpeed } from "@/domain/physics/orbital";
 import {
   SYNODIC_DAYS,
   angleFromAge,
@@ -91,10 +89,7 @@ describe("lunar system state", () => {
   });
 
   it("keeps the position magnitude and position-velocity orthogonality", () => {
-    const speed = calculateOrbitalSpeed(
-      EARTH_MOON_DISTANCE,
-      LUNAR_SIDEREAL_PERIOD,
-    );
+    const speed = Math.sqrt((6.6743e-11 * 5.9722e24) / EARTH_MOON_DISTANCE);
 
     for (const age of [0, 3.7, 7.4, 14.8, 22]) {
       const state = calculateLunarSystemState(age);

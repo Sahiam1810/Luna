@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   EARTH_MOON_DISTANCE,
-  LUNAR_SIDEREAL_PERIOD,
   M_EARTH,
   M_MOON,
 } from "@/domain/physics/constants";
@@ -10,10 +9,10 @@ import {
   calculateGravitationalPotentialEnergy,
   calculateKineticEnergy,
 } from "@/domain/physics/energy";
-import { calculateOrbitalSpeed } from "@/domain/physics/orbital";
+import { calculateCircularOrbitSpeed } from "@/domain/physics/orbital";
 
 describe("orbital energy", () => {
-  const lunarSpeed = calculateOrbitalSpeed(EARTH_MOON_DISTANCE, LUNAR_SIDEREAL_PERIOD);
+  const lunarSpeed = calculateCircularOrbitSpeed(M_EARTH, EARTH_MOON_DISTANCE);
 
   it("calculates positive kinetic energy for the Moon", () => {
     const kineticEnergy = calculateKineticEnergy(M_MOON, lunarSpeed);
@@ -21,7 +20,7 @@ describe("orbital energy", () => {
 
     expect(kineticEnergy).toBeGreaterThan(0);
     expect(kineticEnergy).toBe(expected);
-    expect(kineticEnergy).toBeCloseTo(3.84e28, -26);
+    expect(kineticEnergy).toBeCloseTo(3.806633562e28, -26);
   });
 
   it("calculates negative gravitational potential energy for Earth and Moon", () => {

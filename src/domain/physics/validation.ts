@@ -97,6 +97,22 @@ export function calculateValidationComparison(readout: PhysicsReadout): Validati
       fuente: "Referencia independiente: USNO, Explanatory Supplement Eq. 15.2",
     },
     {
+      magnitud: "Velocidad orbital cinemática",
+      valorModelo: readout.kinematicSpeed,
+      valorReferencia: REFERENCE_ORBITAL_SPEED,
+      unidad: "m/s",
+      errorPorcentual: calculatePercentError(readout.kinematicSpeed, REFERENCE_ORBITAL_SPEED),
+      fuente: "Referencia independiente: NASA Moon Fact Sheet",
+    },
+    {
+      magnitud: "Periodo de Kepler frente al sideral observado",
+      valorModelo: readout.keplerPeriodDays,
+      valorReferencia: LUNAR_SIDEREAL_PERIOD / 86400,
+      unidad: "días",
+      errorPorcentual: readout.keplerPeriodDifferencePercent,
+      fuente: "Referencia independiente: periodo sideral lunar del modelo",
+    },
+    {
       magnitud: "Distancia Sol-Luna en luna nueva",
       valorModelo: newMoonDistance,
       valorReferencia: EARTH_SUN_DISTANCE - EARTH_MOON_DISTANCE,
@@ -124,20 +140,20 @@ export function calculateValidationComparison(readout: PhysicsReadout): Validati
       fuente: "Verificación de consistencia geométrica interna; escala teórica r/(2ρ)",
     },
     {
-      magnitud: "F/m Luna frente a a_c",
+      magnitud: "F/m Luna frente a a_c (identidad del modelo)",
       valorModelo: readout.gravitationalForce / M_MOON,
       valorReferencia: readout.centripetalAcceleration,
       unidad: "m/s²",
       errorPorcentual: readout.gravitationalAccelerationDifferencePercent,
-      fuente: "Verificación de consistencia interna del modelo",
+      fuente: "Identidad del modelo, no validación independiente",
     },
     {
-      magnitud: "Ec frente a -Ep/2",
+      magnitud: "Ec frente a -Ep/2 (identidad del modelo)",
       valorModelo: readout.kineticEnergy,
       valorReferencia: -readout.potentialEnergy / 2,
       unidad: "J",
       errorPorcentual: readout.kineticPotentialDifferencePercent,
-      fuente: "Verificación de consistencia interna del modelo",
+      fuente: "Identidad del modelo, no validación independiente",
     },
   ];
 }

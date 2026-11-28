@@ -17,14 +17,16 @@
 
 | Magnitud | Modelo | Referencia | Error |
 |---|---:|---:|---:|
-| Velocidad orbital | 1023,1572982615 m/s | 1022 m/s NASA | 0,1132385774 % |
+| Velocidad orbital dinámica | 1018,3060966387 m/s | 1022 m/s NASA | 0,3614386851 % |
+| Velocidad orbital cinemática | 1023,1572982615 m/s | 1022 m/s NASA | 0,1132385774 % |
+| Periodo de Kepler | 27,4518211617 d | 27,321661 d sideral observado | 0,4763991533 % |
 | Periodo sinódico | 29,5305905868 d | 29,53 d NASA | 0,0019999552 % |
 | Periodo sinódico | 29,5305905868 d | 29,5305888531 d USNO | 0,0000058707 % |
 | Distancia en luna nueva | 149213470700 m | `R − r` | 0 % |
 | Distancia en luna llena | 149982270700 m | `R + r` | 0 % |
 | Diferencia máxima de iluminación | 0,1284773404 puntos porcentuales | `r/(2ρ)` | 0,0003300929 % |
-| `F/m` frente a `a_c` | 0,0026975736 frente a 0,0027233373 m/s² | Consistencia interna | 0,9550678682 % |
-| `Ec` frente a `−Ep/2` | `3,842989496 × 10²⁸` frente a `3,806633562 × 10²⁸ J` | Consistencia interna | 0,9550678682 % |
+| `F/m` frente a `a_c` | 0,0026975736 frente a 0,0026975736 m/s² | Identidad del modelo | 0 % |
+| `Ec` frente a `−Ep/2` | `3,806633562 × 10²⁸` frente a `3,806633562 × 10²⁸ J` | Identidad del modelo | 0 % |
 
 ## Limitaciones
 

@@ -8,6 +8,7 @@ import {
 } from "@/domain/physics/constants";
 import { calculateGravitationalForce } from "@/domain/physics/gravity";
 import { calculateOrbitalSpeed } from "@/domain/physics/orbital";
+import { calculateCircularOrbitSpeed } from "@/domain/physics/orbital";
 import {
   calculateAngularVelocity,
   calculateCentripetalAcceleration,
@@ -34,7 +35,9 @@ describe("simplified circular orbital model", () => {
   const radius = EARTH_MOON_DISTANCE;
   const period = LUNAR_SIDEREAL_PERIOD;
   const speed = calculateOrbitalSpeed(radius, period);
+  const dynamicSpeed = calculateCircularOrbitSpeed(M_EARTH, radius);
   const centripetalAcceleration = calculateCentripetalAcceleration(speed, radius);
+  const dynamicCentripetalAcceleration = calculateCentripetalAcceleration(dynamicSpeed, radius);
 
   it("calculates the expected vectors at angle zero", () => {
     const position = calculatePositionVector(radius, 0);
@@ -69,16 +72,16 @@ describe("simplified circular orbital model", () => {
     expect(atPi.position.x).toBeCloseTo(-radius);
     expect(atPi.position.y).toBeCloseTo(0);
     expect(atPi.velocity.x).toBeCloseTo(0);
-    expect(atPi.velocity.y).toBeCloseTo(-speed);
-    expect(atPi.acceleration.x).toBeCloseTo(centripetalAcceleration);
+    expect(atPi.velocity.y).toBeCloseTo(-dynamicSpeed);
+    expect(atPi.acceleration.x).toBeCloseTo(dynamicCentripetalAcceleration);
     expect(atPi.acceleration.y).toBeCloseTo(0);
 
     expect(atThreeHalfPi.position.x).toBeCloseTo(0);
     expect(atThreeHalfPi.position.y).toBeCloseTo(-radius);
-    expect(atThreeHalfPi.velocity.x).toBeCloseTo(speed);
+    expect(atThreeHalfPi.velocity.x).toBeCloseTo(dynamicSpeed);
     expect(atThreeHalfPi.velocity.y).toBeCloseTo(0);
     expect(atThreeHalfPi.acceleration.x).toBeCloseTo(0);
-    expect(atThreeHalfPi.acceleration.y).toBeCloseTo(centripetalAcceleration);
+    expect(atThreeHalfPi.acceleration.y).toBeCloseTo(dynamicCentripetalAcceleration);
   });
 
   it("keeps position and velocity perpendicular for multiple angles", () => {
@@ -95,8 +98,8 @@ describe("simplified circular orbital model", () => {
       const state = calculateLunarOrbitState(angle);
 
       expect(magnitude(state.position)).toBeCloseTo(radius, 5);
-      expect(magnitude(state.velocity)).toBeCloseTo(speed, 5);
-      expect(magnitude(state.acceleration)).toBeCloseTo(centripetalAcceleration, 8);
+      expect(magnitude(state.velocity)).toBeCloseTo(dynamicSpeed, 5);
+      expect(magnitude(state.acceleration)).toBeCloseTo(dynamicCentripetalAcceleration, 8);
     }
   });
 
@@ -105,11 +108,11 @@ describe("simplified circular orbital model", () => {
       const state = calculateLunarOrbitState(angle);
 
       expect(state.acceleration.x).toBeCloseTo(
-        -(centripetalAcceleration / radius) * state.position.x,
+        -(dynamicCentripetalAcceleration / radius) * state.position.x,
         8,
       );
       expect(state.acceleration.y).toBeCloseTo(
-        -(centripetalAcceleration / radius) * state.position.y,
+        -(dynamicCentripetalAcceleration / radius) * state.position.y,
         8,
       );
     }
@@ -144,17 +147,14 @@ describe("simplified circular orbital model", () => {
     expect(angle).toBeCloseTo(initialAngle - Math.PI, 12);
   });
 
-  it("agrees with gravitational acceleration within the simplified model", () => {
+  it("matches gravitational acceleration in the dynamic circular model", () => {
     const force = calculateGravitationalForce(M_EARTH, M_MOON, radius);
     const gravitationalAcceleration = force / M_MOON;
     const relativeDifference = Math.abs(
-      (centripetalAcceleration - gravitationalAcceleration) / gravitationalAcceleration,
+      (dynamicCentripetalAcceleration - gravitationalAcceleration) / gravitationalAcceleration,
     );
 
-    // They are not identical because this model uses mean radius and sidereal
-    // period, treats the Moon as orbiting a fixed Earth, and ignores the real
-    // elliptical orbit and the Earth-Moon barycenter.
-    expect(relativeDifference).toBeLessThan(0.02);
+    expect(relativeDifference).toBeCloseTo(0, 12);
   });
 
   it("returns a coherent mean Earth-Moon orbit state", () => {
@@ -162,9 +162,9 @@ describe("simplified circular orbital model", () => {
 
     expect(state.angle).toBe(0);
     expect(state.radius).toBe(radius);
-    expect(state.speed).toBeCloseTo(1023, 0);
+    expect(state.speed).toBeCloseTo(1018, 0);
     expect(state.angularVelocity).toBeCloseTo(2.66e-6, 8);
-    expect(state.centripetalAcceleration).toBeCloseTo(0.00272, 5);
+    expect(state.centripetalAcceleration).toBeCloseTo(0.0026976, 7);
   });
 
   it("rejects invalid orbital model inputs", () => {

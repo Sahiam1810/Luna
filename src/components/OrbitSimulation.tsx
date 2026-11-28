@@ -185,12 +185,12 @@ export function OrbitSimulation() {
         </div>
         <section id="fisica" className="grid gap-4 border-t border-border pt-5 lg:grid-cols-2">
           <div>
-            <h3 className="font-display text-2xl">Datos físicos en tiempo real</h3>
-            <p className="mt-1 text-xs text-muted-foreground">Modelo circular con distancia media y periodo sideral; es una aproximación educativa, no una efeméride.</p>
+            <h3 className="font-display text-2xl">Datos físicos del modelo</h3>
+            <p className="mt-1 text-xs text-muted-foreground">Valores calculados desde el estado de la simulación. Son constantes porque el modelo usa una órbita circular con distancia media y periodo sideral; en la realidad varían porque la órbita es elíptica. Aproximación educativa, no una efeméride.</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {[
                 ["Distancia", `${formatScientific(physics.distance)} m`],
-                ["Velocidad orbital", `${formatScientific(physics.speed)} m/s`],
+                ["Velocidad orbital", `${formatScientific(physics.speed, 4)} m/s`],
                 ["Velocidad angular", `${formatScientific(physics.angularVelocity)} rad/s`],
                 ["Aceleración centrípeta", `${formatScientific(physics.centripetalAcceleration)} m/s²`],
                 ["Fuerza gravitacional", `${formatScientific(physics.gravitationalForce)} N`],
@@ -211,7 +211,7 @@ export function OrbitSimulation() {
             <div className="mt-4 grid gap-3">
               {[
                 ["Gravitación", "F = G·M·m/r²", `${formatScientific(G)} · ${formatScientific(M_EARTH)} · ${formatScientific(M_MOON)} / (${formatScientific(physics.distance)})²`],
-                ["Velocidad orbital", "v = 2πr/T", `2π · ${formatScientific(physics.distance)} / ${formatScientific(LUNAR_SIDEREAL_PERIOD)}`],
+                ["Velocidad orbital", "v = √(GM/r)", `√(${formatScientific(G)} · ${formatScientific(M_EARTH)} / ${formatScientific(physics.distance)}) = ${formatScientific(physics.speed, 4)} m/s`],
                 ["Velocidad angular", "ω = 2π/T", `2π / ${formatScientific(LUNAR_SIDEREAL_PERIOD)}`],
                 ["Aceleración", "a_c = v²/r", `(${formatScientific(physics.speed)})² / ${formatScientific(physics.distance)}`],
                 ["Energía cinética", "Ec = ½mv²", `½ · ${formatScientific(M_MOON)} · (${formatScientific(physics.speed)})²`],
@@ -224,8 +224,9 @@ export function OrbitSimulation() {
               ))}
             </div>
             <div className="mt-4 rounded-lg border border-border p-3 text-sm">
-              <p>F/m Luna frente a a_c: <b>{physics.gravitationalAccelerationDifferencePercent.toFixed(2).replace(".", ",")}%</b> de diferencia.</p>
-              <p className="mt-1">Ec frente a −Ep/2: <b>{physics.kineticPotentialDifferencePercent.toFixed(2).replace(".", ",")}%</b> de diferencia.</p>
+              <p>Velocidad cinemática 2πr/T: <b>{formatScientific(physics.kinematicSpeed, 4)} m/s</b> ({physics.kinematicSpeedDifferencePercent.toFixed(2).replace(".", ",")}% frente a v dinámica).</p>
+              <p className="mt-1">Periodo de Kepler: <b>{physics.keplerPeriodDays.toFixed(6).replace(".", ",")} d</b> ({physics.keplerPeriodDifferencePercent.toFixed(2).replace(".", ",")}% frente al sideral observado).</p>
+              <p className="mt-1 text-xs text-muted-foreground">F/m = a_c y Ec = −Ep/2: identidades del modelo dinámico.</p>
             </div>
           </div>
         </section>
